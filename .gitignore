@@ -1,4 +1,4 @@
 __pycache__/
 .pytest_cache/
 *.pyc
-allure_results/
+allure-results/
