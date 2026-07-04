@@ -1,7 +1,7 @@
 import requests
 import random
 import string
-import config
+from urls import Urls
 
 def generate_random_string(length=10):
     letters = string.ascii_lowercase
@@ -46,5 +46,16 @@ def register_new_courier_and_return_login_password():
 
 def login_courier(login, password):
     payload = {"login": login, "password": password}
-    response = requests.post(f'{config.BASE_URL}{config.COURIER_LOGIN}', data=payload)
+    response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_LOGIN}', data=payload)
     return response.json()["id"]
+
+
+class OrderData:
+    FIRST_NAME = "Naruto"
+    LAST_NAME = "Uchiha"
+    ADDRESS = "Konoha, 142 apt."
+    METRO_STATION = 4
+    PHONE = "+7 800 355 35 35"
+    RENT_TIME = 5
+    DELIVERY_DATE = "2029-06-06"
+    COMMENT = "tututu"

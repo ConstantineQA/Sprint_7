@@ -1,7 +1,7 @@
 import pytest
 import requests
-import config
 import data
+from urls import Urls
 
 
 @pytest.fixture
@@ -15,5 +15,10 @@ def courier():
     yield courier_data 
 
     # удаляем курьера после теста
-    requests.delete(f'{config.BASE_URL}{config.DELETE_COURIER}{courier_id}')
+    requests.delete(f'{Urls.BASE_URL}{Urls.DELETE_COURIER}{courier_id}')
     
+@pytest.fixture
+def clean_courier():
+    data = {}
+    yield data
+    requests.delete(f'{Urls.BASE_URL}{Urls.DELETE_COURIER}{data["id"]}')

@@ -1,5 +1,6 @@
 import requests
-import config
+from config import TextFail
+from urls import Urls
 import data
 import allure
 import pytest
@@ -7,61 +8,93 @@ import pytest
 class TestCreateCourier:
 
     @allure.title('Проверка успешного создания нового курьера')
-    def test_succes_create_courier(self):
-        payload = {
-            "login": data.generate_random_string(),
-            "password": data.generate_random_string(),
-            "firstName": data.generate_random_string()
-        }
-        response = requests.post(f'{config.BASE_URL}{config.COURIER_CREATE}', data=payload)
-        assert response.status_code == 201
-        assert response.json()["ok"] == True
+    def test_succes_create_courier(self, clean_courier):
+        with allure.step('Подготовка тестовых данных'):
+            payload = {
+                "login": data.generate_random_string(),
+                "password": data.generate_random_string(),
+                "firstName": data.generate_random_string()
+            }
+        with allure.step('Отправка POST-запроса на /api/v1/courier'):
+            response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_CREATE}', data=payload)
+        with allure.step('Проверка кода ответа'):
+            assert response.status_code == 201
+        with allure.step('Проверка тела ответа'):
+            assert response.json()["ok"] == True
+        clean_courier['id'] = data.login_courier(payload["login"], payload["password"])
 
 
     @pytest.mark.xfail(reason='фактический message - Этот логин уже используется. Попробуйте другой.')
     @allure.title('Проверка попытки повторно зарегистрировать существующиего курьера')
-    def test_registred_with_used_login(self, courier):
-        payload = {
-            "login": courier[0],
-            "password": data.generate_random_string(),
-            "firstName": data.generate_random_string()
-            # "password": courier[1],
-            # "firstName": courier[2]
-        }
-        response = requests.post(f'{config.BASE_URL}{config.COURIER_CREATE}', data=payload)
-        assert response.status_code == 409
-        assert response.json()["message"] == config.MESSAGE409_COURIER
+    def test_registred_with_used_login(self, clean_courier):
+        with allure.step('Подготовка тестовых данных'):
+            payload = {
+                "login": data.generate_random_string(),
+                "password": data.generate_random_string(),
+                "firstName": data.generate_random_string()
+            }
+        with allure.step('Отправка POST-запроса для создания курьера на /api/v1/courier'):
+            response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_CREATE}', data=payload)
+        with allure.step('Проверка кода ответа'):
+            assert response.status_code == 201
+        with allure.step('Получение id курьера для удаления'):
+            clean_courier['id'] = data.login_courier(payload["login"], payload["password"])
+
+        with allure.step('создание курьера по /api/v1/courier с существующими данными'):
+            payload_second = {
+                "login": payload["login"],
+                "password": data.generate_random_string(),
+                "firstName": data.generate_random_string()
+            }
+            response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_CREATE}', data=payload_second)
+        with allure.step('Проверка кода ответа'):
+            assert response.status_code == 409
+        with allure.step('Проверка текста ошибки'):
+            assert response.json()["message"] == TextFail.MESSAGE409_COURIER
 
 
     @allure.title('Проверка попытки создания курьера без login')
     def test_no_login_registred(self):
-        payload = {
-            "password": data.generate_random_string(),
-            "firstName": data.generate_random_string()
-        }
-        response = requests.post(f'{config.BASE_URL}{config.COURIER_CREATE}', data=payload)
-        assert response.status_code == 400
-        assert response.json()["message"] == config.MESSAGE400_COURIER
+        with allure.step('Подготовка тестовых данных'):
+            payload = {
+                "password": data.generate_random_string(),
+                "firstName": data.generate_random_string()
+            }
+        with allure.step('Отправка POST-запроса на /api/v1/courier'):
+            response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_CREATE}', data=payload)
+        with allure.step('Проверка кода ответа'):
+            assert response.status_code == 400
+        with allure.step('Проверка текста ошибки'):    
+            assert response.json()["message"] == TextFail.MESSAGE400_COURIER
 
 
     @allure.title('Проверка попытки создания курьера без password')
     def test_no_password_registred(self):
-        payload = {
-            "login": data.generate_random_string(),
-            "firstName": data.generate_random_string()
-        }
-        response = requests.post(f'{config.BASE_URL}{config.COURIER_CREATE}', data=payload)
-        assert response.status_code == 400
-        assert response.json()["message"] == config.MESSAGE400_COURIER
+        with allure.step('Подготовка тестовых данных'):
+            payload = {
+                "login": data.generate_random_string(),
+                "firstName": data.generate_random_string()
+            }
+        with allure.step('Отправка POST-запроса на /api/v1/courier'):    
+            response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_CREATE}', data=payload)
+        with allure.step('Проверка кода ответа'):
+            assert response.status_code == 400
+        with allure.step('Проверка текста ошибки'):
+            assert response.json()["message"] == TextFail.MESSAGE400_COURIER
     
 
     @allure.title('Проверка создания нового курьера без firstName')
-    def test_create_courier_no_first_name(self):
-
-        payload = {
-            "login": data.generate_random_string(),
-            "password": data.generate_random_string(),
-        }
-        response = requests.post(f'{config.BASE_URL}{config.COURIER_CREATE}', data=payload)
-        assert response.status_code == 201
-        assert response.json()["ok"] == True
+    def test_create_courier_no_first_name(self, clean_courier):
+        with allure.step('Подготовка тестовых данных'):
+            payload = {
+                "login": data.generate_random_string(),
+                "password": data.generate_random_string(),
+            }
+        with allure.step('Отправка POST-запроса на /api/v1/courier'):    
+            response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_CREATE}', data=payload)
+        with allure.step('Проверка кода ответа'):
+            assert response.status_code == 201
+        with allure.step('Проверка тела ответа'):
+            assert response.json()["ok"] == True
+        clean_courier['id'] = data.login_courier(payload["login"], payload["password"])
+        

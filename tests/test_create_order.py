@@ -1,5 +1,6 @@
 import requests
-import config
+from urls import Urls
+from data import OrderData
 import allure
 import pytest
 
@@ -13,19 +14,22 @@ class TestCreateOrder:
     ])
     @allure.title('Проверка создания заказа с самокатами разных цветов')
     def test_create_order(self, color):
-        payload = {
-            "firstName": "Naruto",
-            "lastName": "Uchiha",
-            "address": "Konoha, 142 apt.",
-            "metroStation": 4,
-            "phone": "+7 800 355 35 35",
-            "rentTime": 5,
-            "deliveryDate": "2029-06-06",
-            "comment": "tututu",
-            "color": color
-        }
-
-        response = requests.post(f'{config.BASE_URL}{config.ORDER_CREATE}',json=payload)
-        assert response.status_code == 201
-        assert "track" in response.json()
+        with allure.step('Подготовка тестовых данных'):
+            payload = {
+                "firstName": OrderData.FIRST_NAME,
+                "lastName": OrderData.LAST_NAME,
+                "address": OrderData.LAST_NAME,
+                "metroStation": OrderData.METRO_STATION,
+                "phone": OrderData.METRO_STATION,
+                "rentTime": OrderData.RENT_TIME,
+                "deliveryDate": OrderData.DELIVERY_DATE,
+                "comment": OrderData.COMMENT,
+                "color": color
+            }
+        with allure.step('Отправка POST-запроса на /api/v1/orders'):
+            response = requests.post(f'{Urls.BASE_URL}{Urls.ORDER_CREATE}',json=payload)
+        with allure.step('Проверка кода ответа'):    
+            assert response.status_code == 201
+        with allure.step('Проверка тела ответа'):
+            assert "track" in response.json()
         
