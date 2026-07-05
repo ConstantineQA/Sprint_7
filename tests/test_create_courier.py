@@ -26,27 +26,14 @@ class TestCreateCourier:
 
     @pytest.mark.xfail(reason='фактический message - Этот логин уже используется. Попробуйте другой.')
     @allure.title('Проверка попытки повторно зарегистрировать существующиего курьера')
-    def test_registred_with_used_login(self, clean_courier):
-        with allure.step('Подготовка тестовых данных'):
+    def test_registred_with_used_login(self, courier):
+        with allure.step('Отправка POST-запроса на /api/v1/courier с логином существующего курьера'):
             payload = {
-                "login": data.generate_random_string(),
+                "login": courier[0],
                 "password": data.generate_random_string(),
                 "firstName": data.generate_random_string()
             }
-        with allure.step('Отправка POST-запроса для создания курьера на /api/v1/courier'):
             response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_CREATE}', data=payload)
-        with allure.step('Проверка кода ответа'):
-            assert response.status_code == 201
-        with allure.step('Получение id курьера для удаления'):
-            clean_courier['id'] = data.login_courier(payload["login"], payload["password"])
-
-        with allure.step('создание курьера по /api/v1/courier с существующими данными'):
-            payload_second = {
-                "login": payload["login"],
-                "password": data.generate_random_string(),
-                "firstName": data.generate_random_string()
-            }
-            response = requests.post(f'{Urls.BASE_URL}{Urls.COURIER_CREATE}', data=payload_second)
         with allure.step('Проверка кода ответа'):
             assert response.status_code == 409
         with allure.step('Проверка текста ошибки'):
